@@ -13,6 +13,8 @@ from PythonMiddleware.notify import Notify
 from PythonMiddleware.graphene import Graphene
 from PythonMiddlewarebase.operationids import operations
 
+from threading import Thread
+
 class SubFormatter(logging.Formatter):
     converter=dt.datetime.fromtimestamp
     def formatTime(self, record, datefmt=None):
@@ -53,16 +55,20 @@ class Logging(object):
 
 headers = {"content-type": "application/json"}
 
-nodeaddress = "wss://api.cocosbcx.net" #mainnet
+node_address_dict = {"mainnet-fn": "wss://api.cocosbcx.net", "testnet-fn": "wss://test.cocosbcx.net"}
 
-token = "xxx"
+token = "00fe2e1e62a1db837133d5078fb5c5c4053c1383b20ac1b1d773458a096d9df9"
 alert_address = "https://oapi.dingtalk.com/robot/send?access_token="+token
 
 logger = Logging().getLogger()
 
-global_last_block_num = -1
+global_last_block_num = {}
 
-def send_message(messages, label=['faucet']):
+def initial():
+    for key in node_address_dict:
+        global_last_block_num[key] = -1
+
+def send_message(messages, label=['test']):
     try:
         body_relay = {
             "jsonrpc": "2.0",
@@ -77,33 +83,45 @@ def send_message(messages, label=['faucet']):
     except Exception as e:
         logger.error("task error: '{}'".format(repr(e)))
 
-
-def listen_block():
+def listen_block(args):
     def on_block_callback(recv_block_id):
-        global global_last_block_num
-        info = gph.info()
-        # logger.debug('info: {}'.format(info))
-        head_block_id = info['head_block_id']
-        head_block_number = info['head_block_number']
-        # logger.debug('head_block_num {}, recv_block_id: {}, head_block_id {}'.format(head_block_number, recv_block_id, head_block_id))
-        if recv_block_id == head_block_id:
-            if head_block_number != global_last_block_num+1:
-                if global_last_block_num > 0:
-                    logger.info('head_block_num {}, recv_block_id: {}, head_block_id {}'.format(head_block_number, recv_block_id, head_block_id))
-                    logger.warn('current block num: {}, last block num: {}'.format(head_block_number, global_last_block_num))
-                    #send message
-            global_last_block_num = head_block_number
-        else:
-            try:
-                logger.info('head_block_num {}, recv_block_id: {}, head_block_id {}'.format(head_block_number, recv_block_id, head_block_id))
-                block = gph.rpc.get_block(global_last_block_num+1)
-                global_last_block_num = global_last_block_num+1
-                logger.warn('>> get_block {}, recv_block_id: {}, head_block_id: {}, get block response： {}'.format(
-                    global_last_block_num, recv_block_id, head_block_id, block['block_id']))
-            except Exception as e:
-                logger.error('get_block exception. block {}, error {}'.format(global_last_block_num+1, repr(e)))
+        try:
+            global global_last_block_num
+            last_block_num = global_last_block_num[node_label]
+            info = gph.info()
+            # logger.debug('info: {}'.format(info))
+            head_block_id = info['head_block_id']
+            head_block_number = info['head_block_number']
+            flag = False
+            message = ""
+            if recv_block_id == head_block_id:
+                if head_block_number != last_block_num+1:
+                    if last_block_num > 0:
+                        flag = True
+                        logger.warn('[{}] current block num: {}, last block num: {}'.format(node_label, head_block_number, last_block_num))
+                global_last_block_num[node_label] = head_block_number
+            else:
+                try:
+                    flag = True
+                    block = gph.rpc.get_block(last_block_num+1)
+                    global_last_block_num[node_label] = last_block_num+1
+                    logger.warn('[{}] >> get_block {}, recv_block_id: {}, head_block_id: {}, get block response： {}'.format(
+                        node_label, last_block_num+1, recv_block_id, head_block_id, block['block_id']))
+                except Exception as e:
+                    logger.error('[{}] get_block exception. block {}, error {}'.format(node_label, last_block_num+1, repr(e)))
+            if flag:
+                if head_block_number != last_block_num: # testnet-fn和mainnet-fn对应多个节点有bug, 一个ws url对应一个node不需要这里的判断
+                    message = "[{}]最新区块:{}，上一个区块:{}".format(node_label, head_block_number, last_block_num)
+                    send_message(message)
+                logger.info('[{}] head_block_num {}, recv_block_id: {}, head_block_id {}, last_block_num:{}'.format(node_label,
+                    head_block_number, recv_block_id, head_block_id, last_block_num))
+        except Exception as e:
+            logger.error('[{}] on_block_callback exception. recv_block_id {}, last block num {}, error {}'.format(node_label,
+                recv_block_id, last_block_num+1, repr(e)))
 
-    gph = Graphene(node=nodeaddress)
+    node_label = args[0]
+    node_address = args[1]
+    gph = Graphene(node=node_address)
     from PythonMiddleware.instance import set_shared_graphene_instance
     set_shared_graphene_instance(gph)
     notify = Notify(
@@ -113,7 +131,11 @@ def listen_block():
     notify.listen()
 
 def main():
-    listen_block()
+    initial()
+    for key in node_address_dict:
+        args = [key, node_address_dict[key]]
+        t = Thread(target=listen_block, args=(args,))
+        t.start()
 
 if __name__ == '__main__':
     main()
