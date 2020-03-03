@@ -62,7 +62,14 @@ node_address_dict = {
 	"testnet-bp-ck-chain-test007": "ws://172.17.25.156:8049", 
 	"testnet-bp-ck-chain-test008": "ws://172.17.25.150:8049", 
 	"testnet-bp-ck-chain-test009": "ws://172.17.25.151:8049", 
-	"testnet-bp-ck-chain-test011": "ws://172.17.25.146:8049"
+	"testnet-bp-ck-chain-test011": "ws://172.17.25.146:8049",
+	"mainnet-fn-ck-chain-prod009": "ws://172.17.25.176:8049", 
+	"mainnet-fn-ck-chain-prod010": "ws://172.17.25.175:8049",
+	"mainnet-bp-ck-chain-prod001": "ws://172.17.25.168:8049",
+	"mainnet-bp-ck-chain-prod002": "ws://172.17.25.170:8049",
+	"mainnet-bp-ck-chain-prod003": "ws://172.17.25.166:8049",
+	"mainnet-bp-ck-chain-prod004": "ws://172.17.25.164:8049",
+	"mainnet-bp-ck-chain-prod005": "ws://172.17.25.169:8049"
 }
 
 token = "00fe2e1e62a1db837133d5078fb5c5c4053c1383b20ac1b1d773458a096d9df9"
