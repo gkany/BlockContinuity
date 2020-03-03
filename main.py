@@ -55,12 +55,20 @@ class Logging(object):
 
 headers = {"content-type": "application/json"}
 
-node_address_dict = {"mainnet-fn": "wss://api.cocosbcx.net", "testnet-fn": "wss://test.cocosbcx.net"}
+#node_address_dict = {"mainnet-fn": "wss://api.cocosbcx.net", "testnet-fn": "wss://test.cocosbcx.net"}
+node_address_dict = {
+	"testnet-fn-ck-chain-test005": "ws://172.17.25.152:8049", 
+	"testnet-fn-ck-chain-test006": "ws://172.17.25.154:8049", 
+	"testnet-bp-ck-chain-test007": "ws://172.17.25.156:8049", 
+	"testnet-bp-ck-chain-test008": "ws://172.17.25.150:8049", 
+	"testnet-bp-ck-chain-test009": "ws://172.17.25.151:8049", 
+	"testnet-bp-ck-chain-test011": "ws://172.17.25.146:8049"
+}
 
 token = "00fe2e1e62a1db837133d5078fb5c5c4053c1383b20ac1b1d773458a096d9df9"
 alert_address = "https://oapi.dingtalk.com/robot/send?access_token="+token
 
-logger = Logging().getLogger()
+logger = Logging(log_name="block-continuity-monitor", console=False).getLogger()
 
 global_last_block_num = {}
 
@@ -92,6 +100,7 @@ def listen_block(args):
             # logger.debug('info: {}'.format(info))
             head_block_id = info['head_block_id']
             head_block_number = info['head_block_number']
+            logger.debug('[{}] last {}, head {}'.format(node_label, last_block_num, head_block_number))
             flag = False
             message = ""
             if recv_block_id == head_block_id:
@@ -110,7 +119,8 @@ def listen_block(args):
                 except Exception as e:
                     logger.error('[{}] get_block exception. block {}, error {}'.format(node_label, last_block_num+1, repr(e)))
             if flag:
-                if head_block_number != last_block_num: # testnet-fn和mainnet-fn对应多个节点有bug, 一个ws url对应一个node不需要这里的判断
+                #if head_block_number != last_block_num: # testnet-fn和mainnet-fn对应多个节点有bug, 一个ws url对应一个node不需要这里的判断
+                if True: 
                     message = "[{}]最新区块:{}，上一个区块:{}".format(node_label, head_block_number, last_block_num)
                     send_message(message)
                 logger.info('[{}] head_block_num {}, recv_block_id: {}, head_block_id {}, last_block_num:{}'.format(node_label,
