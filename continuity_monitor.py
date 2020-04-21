@@ -36,7 +36,7 @@ class Logging(object):
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         log_file = log_dir + '/' + log_name
-        fh = TimedRotatingFileHandler(filename=log_file, when="H", interval=1, backupCount=3*24)
+        fh = TimedRotatingFileHandler(filename=log_file, when="H", interval=1, backupCount=1*24)
         fh.suffix = "%Y-%m-%d_%H-%M.log"
         fh.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}.log$")
         fh.setLevel(logging.DEBUG)
@@ -57,19 +57,24 @@ headers = {"content-type": "application/json"}
 
 #node_address_dict = {"mainnet-fn": "wss://api.cocosbcx.net", "testnet-fn": "wss://test.cocosbcx.net"}
 node_address_dict = {
-	"testnet-fn-ck-chain-test005": "ws://172.17.25.152:8049", 
-	"testnet-fn-ck-chain-test006": "ws://172.17.25.154:8049", 
-	"testnet-bp-ck-chain-test007": "ws://172.17.25.156:8049", 
-	"testnet-bp-ck-chain-test008": "ws://172.17.25.150:8049", 
-	"testnet-bp-ck-chain-test009": "ws://172.17.25.151:8049", 
-	"testnet-bp-ck-chain-test011": "ws://172.17.25.146:8049",
-	"mainnet-fn-ck-chain-prod009": "ws://172.17.25.176:8049", 
-	"mainnet-fn-ck-chain-prod010": "ws://172.17.25.175:8049",
-	"mainnet-bp-ck-chain-prod001": "ws://172.17.25.168:8049",
-	"mainnet-bp-ck-chain-prod002": "ws://172.17.25.170:8049",
-	"mainnet-bp-ck-chain-prod003": "ws://172.17.25.166:8049",
-	"mainnet-bp-ck-chain-prod004": "ws://172.17.25.164:8049",
-	"mainnet-bp-ck-chain-prod005": "ws://172.17.25.169:8049"
+	#"testnet-fn-ck-chain-test005": "ws://172.17.25.152:8049", 
+	#"testnet-fn-ck-chain-test006": "ws://172.17.25.154:8049", 
+	#"testnet-bp-ck-chain-test007": "ws://172.17.25.156:8049", 
+	#"testnet-bp-ck-chain-test008": "ws://172.17.25.150:8049", 
+	#"testnet-bp-ck-chain-test009": "ws://172.17.25.151:8049", 
+	#"testnet-bp-ck-chain-test011": "ws://172.17.25.146:8049",
+	#"mainnet-fn-ck-chain-prod009": "ws://172.17.25.176:8049", 
+	#"mainnet-fn-ck-chain-prod010": "ws://172.17.25.175:8049",
+	#"mainnet-bp-ck-chain-prod001": "ws://172.17.25.168:8049",
+	#"mainnet-bp-ck-chain-prod002": "ws://172.17.25.170:8049",
+	#"mainnet-bp-ck-chain-prod003": "ws://172.17.25.166:8049",
+	#"mainnet-bp-ck-chain-prod004": "ws://172.17.25.164:8049",
+	#"mainnet-bp-ck-chain-prod005": "ws://172.17.25.169:8049"
+        "ck-chain-fn-prod-001": "ws://10.22.0.14:8049",
+        "ck-chain-fn-prod-002": "ws://10.22.0.7:8049",
+        "bj-chain-node-prod-001":"ws://10.22.0.10:8049",
+        "bj-chain-node-prod-002":"ws://10.22.0.2:8049",
+        "bj-chain-node-prod-003":"ws://10.22.0.4:8049"
 }
 
 token = "00fe2e1e62a1db837133d5078fb5c5c4053c1383b20ac1b1d773458a096d9df9"
