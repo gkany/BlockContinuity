@@ -6,7 +6,7 @@ import json
 import logging
 import requests
 import datetime as dt
-from time import sleep
+import time
 from logging.handlers import RotatingFileHandler
 from logging.handlers import TimedRotatingFileHandler
 from PythonMiddleware.notify import Notify
@@ -52,6 +52,12 @@ class Logging(object):
 
     def getLogger(self):
         return self.logger
+
+def now_to_date(format_string="%Y-%m-%d %H:%M:%S"):
+    time_stamp = int(time.time())
+    time_array = time.localtime(time_stamp)
+    str_date = time.strftime(format_string, time_array)
+    return str_date
 
 headers = {"content-type": "application/json"}
 
@@ -111,7 +117,7 @@ def listen_block(args):
             info = gph.info()
             # logger.debug('info: {}'.format(info))
             head_block_id = info['head_block_id']
-            head_block_number = info['head_block_number']
+            head_block_number = int(info['head_block_number'])
             logger.debug('[{}] last {}, head {}'.format(node_label, last_block_num, head_block_number))
             flag = False
             message = ""
@@ -125,15 +131,18 @@ def listen_block(args):
                 try:
                     flag = True
                     block = gph.rpc.get_block(last_block_num+1)
-                    global_last_block_num[node_label] = last_block_num+1
+                    #global_last_block_num[node_label] = last_block_num+1
+                    global_last_block_num[node_label] = head_block_number # 减少回滚数据报错消息推送
                     logger.warn('[{}] >> get_block {}, recv_block_id: {}, head_block_id: {}, get block response： {}'.format(
                         node_label, last_block_num+1, recv_block_id, head_block_id, block['block_id']))
                 except Exception as e:
                     logger.error('[{}] get_block exception. block {}, error {}'.format(node_label, last_block_num+1, repr(e)))
+                    global_last_block_num[node_label] = head_block_number # 容错
+                    
             if flag:
                 #if head_block_number != last_block_num: # testnet-fn和mainnet-fn对应多个节点有bug, 一个ws url对应一个node不需要这里的判断
                 if True: 
-                    message = "[{}]最新区块:{}，上一个区块:{}".format(node_label, head_block_number, last_block_num)
+                    message = "[{}][{}]最新区块:{}，上一个区块:{}".format(node_label, now_to_date(), head_block_number, last_block_num)
                     send_message(message)
                 logger.info('[{}] head_block_num {}, recv_block_id: {}, head_block_id {}, last_block_num:{}'.format(node_label,
                     head_block_number, recv_block_id, head_block_id, last_block_num))
