@@ -141,7 +141,8 @@ def listen_block(args):
                     
             if flag:
                 #if head_block_number != last_block_num: # testnet-fn和mainnet-fn对应多个节点有bug, 一个ws url对应一个node不需要这里的判断
-                if True: 
+                #if True: 
+                if head_block_number != last_block_num+1: 
                     message = "[{}][{}]最新区块:{}，上一个区块:{}".format(node_label, now_to_date(), head_block_number, last_block_num)
                     send_message(message)
                 logger.info('[{}] head_block_num {}, recv_block_id: {}, head_block_id {}, last_block_num:{}'.format(node_label,
