@@ -89,10 +89,12 @@ alert_address = "https://oapi.dingtalk.com/robot/send?access_token="+token
 logger = Logging(log_name="block-continuity-monitor", console=False).getLogger()
 
 global_last_block_num = {}
+one_block_msg_send_once = {}
 
 def initial():
     for key in node_address_dict:
         global_last_block_num[key] = -1
+        one_block_msg_send_once[key] = -1
 
 def send_message(messages, label=['test']):
     try:
@@ -144,7 +146,11 @@ def listen_block(args):
                 #if True: 
                 if head_block_number != last_block_num+1: 
                     message = "[{}][{}]最新区块:{}，上一个区块:{}".format(node_label, now_to_date(), head_block_number, last_block_num)
-                    send_message(message)
+                    if head_block_number != one_block_msg_send_once[node_label]:
+                        send_message(message)
+                        one_block_msg_send_once[node_label] = head_block_number
+                    else:
+                        logger.warn(message)
                 logger.info('[{}] head_block_num {}, recv_block_id: {}, head_block_id {}, last_block_num:{}'.format(node_label,
                     head_block_number, recv_block_id, head_block_id, last_block_num))
         except Exception as e:
